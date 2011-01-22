@@ -1,0 +1,9 @@
+Example
+
+(define-directory-list "/dir1" "/Users/you/Music/")
+
+This defines a dispatcher for hunchentoot that makes URI
+"http://<root>/dir1?path=iTunes/" show the contents of the directory
+/Users/you/Music/iTunes/
+
+See http://mtlhc.com/software/for-hunchentoot for a screenshot.
