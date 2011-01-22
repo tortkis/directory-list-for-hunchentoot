@@ -6,7 +6,8 @@
   (:export
    :define-directory-list))
 
-(defmacro define-directory-list (uri base-path &key (default-content-type "text/plain; charset=utf-8"))
+(defmacro define-directory-list (uri base-path &key (show-path nil)
+                                 (default-content-type "text/plain; charset=utf-8"))
   (let ((handler-name (intern (string-upcase (format nil "dir-list-~A" uri)))))
     `(progn
        (push (hunchentoot:create-prefix-dispatcher ,uri ',handler-name)
@@ -33,9 +34,15 @@
                             "")
                        ,@(if files
                              (mapcar #'(lambda (file)
-                                         (let* ((name (subseq (namestring file) ,(length base-path))))
-                                           `(:tr (:td ((:a :href ,(format nil "~A?path=~A" ,uri name))
-                                                       ,name)))))
+                                         (let* ((path (subseq (namestring file) ,(length base-path)))
+                                                (name (if (pathname-name file)
+                                                          (if (pathname-type file)
+                                                              (format nil "~A.~A"
+                                                                      (pathname-name file) (pathname-type file))
+                                                              (pathname-name file))
+                                                          (format nil "~A/" (car (last (pathname-directory file)))))))
+                                           `(:tr (:td ((:a :href ,(format nil "~A?path=~A" ,uri path))
+                                                       ,(if ,show-path path name))))))
                                      files)
                              (list "NA")))))))
                  (t (hunchentoot:handle-static-file full-path
