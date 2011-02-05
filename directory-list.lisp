@@ -34,7 +34,7 @@
                             "")
                        ,@(if files
                              (mapcar #'(lambda (file)
-                                         (let* ((path (subseq (namestring file) ,(length base-path)))
+                                         (let* ((path (subseq (namestring file) (length ,base-path)))
                                                 (name (if (pathname-name file)
                                                           (if (pathname-type file)
                                                               (format nil "~A.~A"
