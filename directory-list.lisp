@@ -6,11 +6,17 @@
   (:export
    :define-directory-list))
 
+(in-package :directory-list)
+
 (defmacro define-directory-list (uri base-path &key (show-path nil)
-                                 (default-content-type "text/plain; charset=utf-8"))
+                                 (default-content-type "text/plain; charset=utf-8")
+                                 (return-uri nil))
   (let ((handler-name (intern (string-upcase (format nil "dir-list-~A" uri)))))
     `(progn
        (push (hunchentoot:create-prefix-dispatcher ,uri ',handler-name)
+             hunchentoot:*dispatch-table*)
+       (push (hunchentoot:create-folder-dispatcher-and-handler
+              ,(format nil "~A-f/" uri) ,base-path)
              hunchentoot:*dispatch-table*)
        (defun ,handler-name ()
          (let* ((rel-path (or (hunchentoot:parameter "path") "/"))
@@ -23,6 +29,9 @@
                    `(:html
                      (:head (:title ,(format nil "Directory List: ~A" rel-path)))
                      (:body
+                      ,,(if return-uri
+                            ``(:div ((:a :href ,,return-uri) "[return]") :br)
+                            "")
                       (:b ,(format nil "Directory List: ~A" rel-path))
                       (:table
                        ,(if (and dirp (> (length (remove #\/ rel-path)) 0))
@@ -41,7 +50,10 @@
                                                                       (pathname-name file) (pathname-type file))
                                                               (pathname-name file))
                                                           (format nil "~A/" (car (last (pathname-directory file)))))))
-                                           `(:tr (:td ((:a :href ,(format nil "~A?path=~A" ,uri path))
+                                           `(:tr (:td ((:a :href
+                                                           ,(if (pathname-name file)
+                                                                (format nil "~A-f/~A" ,uri path)
+                                                                (format nil "~A?path=~A" ,uri path)))
                                                        ,(if ,show-path path name))))))
                                      files)
                              (list "NA")))))))
