@@ -16,7 +16,7 @@
        (push (hunchentoot:create-prefix-dispatcher ,uri ',handler-name)
              hunchentoot:*dispatch-table*)
        (push (hunchentoot:create-folder-dispatcher-and-handler
-              ,(format nil "~A-f/" uri) ,base-path)
+              ,(format nil "~A-f/" uri) ,base-path ,default-content-type)
              hunchentoot:*dispatch-table*)
        (defun ,handler-name ()
          (let* ((rel-path (or (hunchentoot:parameter "path") "/"))
@@ -27,7 +27,11 @@
            (cond (dirp
                   (html-string:html-string
                    `(:html
-                     (:head (:title ,(format nil "Directory List: ~A" rel-path)))
+                     (:head
+                      (:title ,(format nil "Directory List: ~A" rel-path))
+                      ((:style :type "text/css")
+                       "<!-- a { text-decoration:none; font-family: sans-serif; }"
+                       "body { font-family: sans-serif; }-->"))
                      (:body
                       ,,(if return-uri
                             ``(:div ((:a :href ,,return-uri) "[return]") :br)
